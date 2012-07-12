@@ -22,7 +22,89 @@
 
     <!-- flag for becoming a daemon -->
     <key>daemon</key>
-    <boolean>false</boolean>
+	<boolean>false</boolean>
+
+	<!-- which CGI service to be -->
+	<key>service</key>
+	<string>fastcgi</key>
+
+	<!-- the different CGI service settings -->
+	<key>services</key>
+	<map>
+
+		<key>scgi</key>
+		<map>
+			<key>api</key>
+			<string>scgi</string>
+			<key>socket</key>
+			<string>/tmp/cblog-scgi-socket</string>
+		</map>
+
+		<key>fastcgi</key>
+		<map>
+			<key>api</key>
+			<string>fastcgi</string>
+			<key>socket</key>
+			<string>/tmp/cblog-fcgi-socket</string>
+			<!-- <string>127.0.0.1:6786</string> -->
+		</map>
+
+	</map>
+
+	<!-- which database config to use -->
+	<key>database</key>
+	<string>sqlite</string>
+
+	<!-- database settings -->
+	<key>databases</key>
+	<map>
+		<key>mysql</key>
+		<map>
+			<key>host</key>
+			<string>localhost</string>
+			<key>name</key>
+			<string>cblog</string>
+
+			<!-- change these to something sane -->
+			<key>user</key>
+			<string>cblog</string>
+			<key>password</key>
+			<string>cblog</string>
+		</map>
+
+		<key>sqlite</key>
+		<map>
+			<key>file</key>
+			<string>db/cblog.db</string>
+		</map>
+
+	</map>
+
+	<!-- which logging facility to use -->
+	<key>log</key>
+	<string>syslog</string>
+
+	<!-- the different logging facilities -->
+	<key>logs</key>
+	<map>
+
+		<!-- syslog facility -->
+		<key>syslog</key>
+		<map>
+			<key>ident</key>
+			<string>cblog</string>
+		</map>
+
+		<!-- file log facility -->
+		<key>file</key>
+		<map>
+			<key>name</key>
+			<string>log/cblog.log</string>
+			<key>append</key>
+			<boolean>true</boolean>
+		</map>
+
+	</map>
 
 </map>
 </llsd>
