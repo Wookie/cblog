@@ -10,7 +10,7 @@ COVERAGE?=../coverage
 
 SHELL=/bin/sh
 NAME=cblog
-SRC=cblog.c
+SRC=cblog.c misc.c
 HDR=
 OBJ=$(SRC:.c=.o)
 OUT=$(NAME)
