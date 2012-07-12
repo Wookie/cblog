@@ -1,0 +1,28 @@
+<?xml version="1.0" ?>
+<llsd>
+<map>
+
+	<!-- this specifies the root folder where the cblog lives.
+		 if this is left empty, it defaults to /var/www/cblog -->
+    <key>directory</key>
+	<string>/var/www/cblog</string>
+
+    <!-- if the following values begin with a / then cblog
+         will interpret it as an absolute path. if it doesn't 
+         start with a / it will be joined with the the 
+         directory specified above -->
+
+    <!-- the file to store the process pid in -->
+    <key>pidfile</key>
+    <string>misc/cblog.pid</string>
+
+    <!-- the file to store the start time of the daemon -->
+    <key>startfile</key>
+    <string>misc/cblog.start</string>
+
+    <!-- flag for becoming a daemon -->
+    <key>daemon</key>
+    <boolean>false</boolean>
+
+</map>
+</llsd>
