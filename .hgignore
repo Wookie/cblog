@@ -1,0 +1,13 @@
+syntax: glob
+cutil/coverage
+cllsd/coverage
+src/cblog
+src/lib
+src/include
+tests/test_all
+*.o
+*.a
+.*.swp
+*.gcno
+*.gcda
+src/cblog.info

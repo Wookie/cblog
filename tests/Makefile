@@ -9,15 +9,24 @@ EXTRA_LIBS_ROOT?=/usr/local
 SHELL=/bin/sh
 SRC=test_all.c
 OBJ=$(SRC:.c=.o)
+GCDA=$(SRC:.c=.gcda)
+GCNO=$(SRC:.c=.gcno)
+GCOV=$(SRC:.c=.c.gcov)
 OUT=test_all
-LIBS=-lcllsd -lcutil -lcunit -lexpat -lev
-CBOT_ROOT=../src
-CFLAGS=-O0 -gstabs+ -I$(CLLSD_ROOT)/include -I$(CUTIL_ROOT)/include -I$(EXTRA_LIBS_ROOT)/include
-LDFLAGS=-gstabs+ -L$(CLLSD_ROOT)/lib -L$(CUTIL_ROOT)/lib -L$(EXTRA_LIBS_ROOT)/lib
+LIBS=-lcblog -lcllsd -lcutil -lcunit -lexpat -lev
+CBLOG_ROOT=../src
+CFLAGS=-O0 -gstabs+ -I$(CBLOG_ROOT)/include -I$(CLLSD_ROOT)/include -I$(CUTIL_ROOT)/include -I$(EXTRA_LIBS_ROOT)/include
+LDFLAGS=-O0 -gstabs+ -L$(CBLOG_ROOT)/lib -L$(CLLSD_ROOT)/lib -L$(CUTIL_ROOT)/lib -L$(EXTRA_LIBS_ROOT)/lib
+# set LDFLAGS to something gcov can use
+coverage: LDFLAGS=-fprofile-arcs -O0 -gstabs+ -L$(CBLOG_ROOT)/lib -L$(CLLSD_ROOT)/lib -L$(CUTIL_ROOT)/lib -L$(EXTRA_LIBS_ROOT)/lib
+
 
 all:
 
 test: $(OUT)
+	./test_all
+
+coverage: $(OUT)
 	./test_all
 
 .c.o:
@@ -30,9 +39,14 @@ install:
 
 uninstall:
 
+report:
+
 clean:
 	rm -rf $(OBJ)
 	rm -rf $(OUT)
+	rm -rf $(GCDA)
+	rm -rf $(GCNO)
+	rm -rf $(GCOV)
 
-.PHONY: all install uninstall clean test
+.PHONY: all install uninstall clean test coverage report
 

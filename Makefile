@@ -4,33 +4,53 @@ SHELL=/bin/sh
 INSTALL=/usr/bin/install
 INSTALL_PROGRAM=$(INSTALL)
 INSTALL_DATA=$(INSTALL) -m 644
-#include Makefile.conf
+COVERAGE?=./coverage
 
-DIRS = cutil cllsd src test
+CBOT_DIRS = src tests
+SUBR_DIRS = cutil cllsd
+DIRS = $(SUBR_DIRS) $(CBOT_DIRS)
 BUILDDIRS = $(DIRS:%=build-%)
 INSTALLDIRS = $(DIRS:%=install-%)
 UNINSTALLDIRS = $(DIRS:%=uninstall-%)
 CLEANDIRS = $(DIRS:%=clean-%)
 TESTDIRS = $(DIRS:%=test-%)
+GCOVDIRS = $(DIRS:%=gcov-%)
+REPORTDIRS = $(DIRS:%=report-%)
 
 all: $(BUILDDIRS)
-$(DIRS): $(BUILDDIRS)
-$(BUILDDIRS):
-	$(MAKE) -C $(@:build-%=%) all
 
-install: $(INSTALLDIRS) all
+$(DIRS): $(BUILDDIRS)
+
+$(BUILDDIRS):
+	$(MAKE) -C $(@:build-%=%)
+
+install: $(INSTALLDIRS)
+
 $(INSTALLDIRS):
 	$(MAKE) -C $(@:install-%=%) install
 
-uninstall: $(UNINSTALLDIRS) all
+uninstall: $(UNINSTALLDIRS)
+
 $(UNINSTALLDIRS):
 	$(MAKE) -C $(@:uninstall-%=%) uninstall
 
-test: $(TESTDIRS) all
+test: $(TESTDIRS)
+
 $(TESTDIRS):
 	$(MAKE) -C $(@:test-%=%) test
 
+coverage: $(GCOVDIRS) $(REPORTDIRS)
+
+$(GCOVDIRS):
+	$(MAKE) -C $(@:gcov-%=%) coverage
+
+report: $(REPORTDIRS)
+
+$(REPORTDIRS):
+	$(MAKE) -C $(@:report-%=%) report
+
 clean: $(CLEANDIRS)
+
 $(CLEANDIRS):
 	$(MAKE) -C $(@:clean-%=%) clean
 
@@ -39,6 +59,8 @@ $(CLEANDIRS):
 .PHONY: subdirs $(INSTALLDIRS)
 .PHONY: subdirs $(UNINSTALL)
 .PHONY: subdirs $(TESTDIRS)
+.PHONY: subdirs $(GCOVDIRS)
+.PHONY: subdirs $(REPORTDIRS)
 .PHONY: subdirs $(CLEANDIRS)
-.PHONY: all install uninstall clean test
+.PHONY: all install uninstall clean test coverage report
 

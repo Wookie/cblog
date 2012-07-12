@@ -14,11 +14,11 @@
 
     <!-- the file to store the process pid in -->
     <key>pidfile</key>
-    <string>misc/cblog.pid</string>
+    <string>run/cblog.pid</string>
 
     <!-- the file to store the start time of the daemon -->
     <key>startfile</key>
-    <string>misc/cblog.start</string>
+    <string>run/cblog.start</string>
 
     <!-- flag for becoming a daemon -->
     <key>daemon</key>

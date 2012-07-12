@@ -49,12 +49,17 @@
 
 static int8_t const * config_file = NULL;
 static llsd_t * config = NULL;
+
+/* global config options */
+static int daemonize = FALSE;
+static int8_t * root_dir = NULL;
+static int8_t * pid_file = NULL;
+static int8_t * start_file = NULL;
+
 static evt_loop_t * el = NULL;
-static evt_t int_h;
-static evt_t term_h;
-static evt_params_t int_params;
-static evt_params_t term_params;
-	
+static evt_t * int_h = NULL;
+static evt_t * term_h = NULL;
+
 static evt_ret_t signal_cb( evt_loop_t * const el,
 							evt_t * const evt,
 							evt_params_t * const params,
@@ -72,7 +77,7 @@ static evt_ret_t signal_cb( evt_loop_t * const el,
 
 	/* stop the event loop so we'll exit */
 	DEBUG("stopping event loop\n");
-	evt_stop( session->el );
+	evt_stop( el );
 
 	return EVT_OK;
 }
@@ -160,35 +165,40 @@ static int get_globals( void )
 	return TRUE;
 }
 
-static void start_event_handlers( void )
+static void start_signal_handlers( void )
 {
+	evt_params_t int_params;
+	evt_params_t term_params;
+
 	/* create the event loop */
 	el = evt_new();
 
 	/* create SIGINT signal handler */
 	MEMSET( &int_params, 0, sizeof(evt_params_t) );
 	int_params.signal_params.signum = SIGINT;
-	evt_initialize_event_handler( &int_h, el, EVT_SIGNAL, &int_params, signal_cb, (void*)&session );
+	int_h = evt_new_event_handler( EVT_SIGNAL, &int_params, &signal_cb, NULL );
 	
 	/* create SIGTERM signal handler */
 	MEMSET( &term_params, 0, sizeof(evt_params_t) );
 	term_params.signal_params.signum = SIGTERM;
-	evt_initialize_event_handler( &term_h, el, EVT_SIGNAL, &term_params, signal_cb, (void*)&session );
+	term_h = evt_new_event_handler( EVT_SIGNAL , &term_params, &signal_cb, NULL );
 
 	/* start both event handlers */
-	evt_start_event_handler( el, &int_h );
-	evt_start_event_handler( el, &term_h );
+	evt_start_event_handler( el, int_h );
+	evt_start_event_handler( el, term_h );
 }
 
-static void stop_event_handlers( void )
+static void stop_signal_handlers( void )
 {
 	/* stop the event handlers */
-	evt_stop_event_handler( el, &term_h );
-	evt_stop_event_handler( el, &int_h );
+	evt_stop_event_handler( el, term_h );
+	evt_stop_event_handler( el, int_h );
 
 	/* clean up both event handlers */
-	evt_deinitialize_event_handler( &term_h );
-	evt_deinitialize_event_handler( &int_h );
+	evt_delete_event_handler( (void*)term_h );
+	evt_delete_event_handler( (void*)int_h );
+	term_h = NULL;
+	int_h = NULL;
 
 	/* clean up the event loop */
 	evt_delete( el );
@@ -214,8 +224,16 @@ int main(int argc, char** argv)
 	/* we should have a loaded config */
 	CHECK_RET( get_globals(), EXIT_FAILURE );
 
+	
+
+	/* start the signal handlers */
+	start_signal_handlers();
+
 	/* blocking call to run event loop */
 	evt_run( el );
+
+	/* stop the signal handlers */
+	stop_signal_handlers();
 
 	/* close the logging facility */
 	stop_logging();
