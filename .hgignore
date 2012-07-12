@@ -11,3 +11,5 @@ tests/test_all
 *.gcno
 *.gcda
 src/cblog.info
+run/cblog.pid
+run/cblog.start

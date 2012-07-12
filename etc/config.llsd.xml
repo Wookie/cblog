@@ -5,7 +5,7 @@
 	<!-- this specifies the root folder where the cblog lives.
 		 if this is left empty, it defaults to /var/www/cblog -->
     <key>directory</key>
-	<string>/var/www/cblog</string>
+	<string></string>
 
     <!-- if the following values begin with a / then cblog
          will interpret it as an absolute path. if it doesn't 

@@ -53,6 +53,7 @@ static int8_t const * config_file = NULL;
 static llsd_t * config = NULL;
 
 /* global config options */
+#define MAX_PATH_LEN (1024)
 static int do_daemon = FALSE;
 static int8_t * root_dir = NULL;
 static int8_t * pid_file = NULL;
@@ -159,8 +160,15 @@ static int get_globals( void )
 
 	/* get the root dir value */
 	tmp = llsd_map_find( config, "directory" );
-	CHECK_PTR_RET( tmp, FALSE );
-	root_dir = strdup( llsd_as_string( tmp ).str );
+	if ( ( tmp != NULL ) && ( strlen( llsd_as_string( tmp ).str ) > 0 ) )
+	{
+		root_dir = strdup( llsd_as_string( tmp ).str );
+	}
+	else
+	{
+		root_dir = CALLOC( MAX_PATH_LEN, sizeof(int8_t) );
+		getcwd( root_dir, MAX_PATH_LEN );
+	}
 	NOTICE( "root directory: %s\n", root_dir );
 
 	/* get the daemonize flag */
@@ -227,6 +235,10 @@ int main(int argc, char** argv)
 		daemonize();
 	}
 
+	/* create the pid/start files */
+	create_pid_file( pid_file );
+	create_start_file( start_file );
+
 	/* clean up the file descriptors */
 	sanitize_files();
 
@@ -241,6 +253,12 @@ int main(int argc, char** argv)
 
 	/* close the logging facility */
 	stop_logging();
+
+	/* clean up the pid/start files */
+	NOTICE("unlinking: %s\n", pid_file );
+	unlink( pid_file );
+	NOTICE("unlinking: %s\n", start_file );
+	unlink( start_file );
 
 	/* clean up our memory */
 	if ( config != NULL )
