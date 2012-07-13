@@ -26,7 +26,7 @@
 
 	<!-- which CGI service to be -->
 	<key>service</key>
-	<string>fastcgi</key>
+	<string>fastcgi</string>
 
 	<!-- the different CGI service settings -->
 	<key>services</key>
@@ -82,7 +82,7 @@
 
 	<!-- which logging facility to use -->
 	<key>log</key>
-	<string>syslog</string>
+	<string>file</string>
 
 	<!-- the different logging facilities -->
 	<key>logs</key>
@@ -91,6 +91,8 @@
 		<!-- syslog facility -->
 		<key>syslog</key>
 		<map>
+			<key>type</key>
+			<string>syslog</string>
 			<key>ident</key>
 			<string>cblog</string>
 		</map>
@@ -98,6 +100,8 @@
 		<!-- file log facility -->
 		<key>file</key>
 		<map>
+			<key>type</key>
+			<string>file</string>
 			<key>name</key>
 			<string>log/cblog.log</string>
 			<key>append</key>

@@ -1,4 +1,4 @@
-# recursively build cbot
+# recursively build cblog
 #
 SHELL=/bin/sh
 INSTALL=/usr/bin/install
@@ -6,10 +6,12 @@ INSTALL_PROGRAM=$(INSTALL)
 INSTALL_DATA=$(INSTALL) -m 644
 COVERAGE?=./coverage
 
-CBOT_DIRS = src tests
+CBLOG_DIRS = src tests
 SUBR_DIRS = cutil cllsd
-DIRS = $(SUBR_DIRS) $(CBOT_DIRS)
+DIRS = $(SUBR_DIRS) $(CBLOG_DIRS)
 BUILDDIRS = $(DIRS:%=build-%)
+DEBUGSUBR = $(SUBR_DIRS:%=debug-%)
+DEBUGDIRS = $(CBLOG_DIRS:%=debug-%)
 INSTALLDIRS = $(DIRS:%=install-%)
 UNINSTALLDIRS = $(DIRS:%=uninstall-%)
 CLEANDIRS = $(DIRS:%=clean-%)
@@ -23,6 +25,14 @@ $(DIRS): $(BUILDDIRS)
 
 $(BUILDDIRS):
 	$(MAKE) -C $(@:build-%=%)
+
+debug: $(DEBUGSUBR) $(DEBUGDIRS) 
+
+$(DEBUGDIRS):
+	$(MAKE) -C $(@:debug-%=%)
+
+$(DEBUGSUBR):
+	$(MAKE) -C $(@:debug-%=%) test
 
 install: $(INSTALLDIRS)
 

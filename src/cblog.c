@@ -58,7 +58,8 @@ static int do_daemon = FALSE;
 static int8_t * root_dir = NULL;
 static int8_t * pid_file = NULL;
 static int8_t * start_file = NULL;
-
+static llsd_t * log_config = NULL;
+static log_t * log = NULL;
 
 static evt_ret_t signal_cb( evt_loop_t * const el,
 							evt_t * const evt,
@@ -152,6 +153,7 @@ static int load_config( void )
 static int get_globals( void )
 {
 	int len1, len2;
+	int8_t * tmp_str;
 	llsd_t * tmp;
 
 	CHECK_PTR_RET( config, FALSE );
@@ -209,19 +211,100 @@ static int get_globals( void )
 		}
 		NOTICE( "startfile: %s\n", start_file );
 	}
+
+	/* get the log config */
+	tmp = llsd_map_find( config, "log" );
+	if ( ( tmp != NULL ) && ( strlen( llsd_as_string( tmp ).str ) > 0 ) )
+	{
+		/* get the name of the logging config to look up */
+		tmp_str = strdup( llsd_as_string( tmp ).str );
+
+		/* get the log configs */
+		tmp = llsd_map_find( tmp, "logs" );
+		if ( tmp != NULL )
+		{
+			log_config = llsd_map_find( tmp, tmp_str );
+		}
+
+		FREE( tmp_str );
+	}
+	else
+	{
+		/* build a default config */
+		log_config = llsd_new_map(1);
+
+		/* { 'type': 'syslog', 'ident': 'cblog' } */
+		llsd_map_insert( log_config,
+						 llsd_new_string( "type", 4, FALSE, FALSE ),
+						 llsd_new_string( "file", 4, FALSE, FALSE ) );
+		llsd_map_insert( log_config, 
+						 llsd_new_string( "ident", 5, FALSE, FALSE ), 
+						 llsd_new_string( "cblog", 5, FALSE, FALSE ) );
+	}
 	
 	return TRUE;
+}
+
+static int init_log( void )
+{
+	llsd_t * tmp = NULL;
+	log_type_t type = -1;
+	uint8_t * param = NULL;
+	int append = FALSE;
+
+	tmp = llsd_map_find( log_config, "type" );
+	CHECK_PTR_RET( tmp, FALSE );
+
+	/* figure out the log type */
+	if ( strcmp( llsd_as_string( tmp ).str, "file" ) == 0 )
+		type = LOG_TYPE_FILE;
+	else if ( strcmp( llsd_as_string( tmp ).str, "syslog" ) == 0 )
+		type = LOG_TYPE_SYSLOG;
+	else
+	{
+		WARN( "invalid logging facility type\n" );
+		return FALSE;
+	}
+
+	switch ( type )
+	{
+		case LOG_TYPE_FILE:
+			tmp = llsd_map_find( log_config, "name" );
+			CHECK_PTR_RET_MSG( tmp, FALSE, "failed to get log file name\n" );
+			param = build_absolute_path( root_dir, llsd_as_string( tmp ).str );
+			tmp = llsd_map_find( log_config, "append" );
+			if ( tmp != NULL )
+				append = llsd_as_bool( tmp );
+			break;
+
+		case LOG_TYPE_SYSLOG:
+			tmp = llsd_map_find( log_config, "ident" );
+			CHECK_PTR_RET_MSG( tmp, FALSE, "failed to get syslog ident\n" );
+			param = strdup( llsd_as_string( tmp ).str );
+			break;
+	}
+
+	log = start_logging( type, param, append );
+
+	if ( log == NULL )
+	{
+		WARN( "failed to start logging facility\n" );
+		FREE( param );
+		return FALSE;
+	}
+
+	return TRUE;
+}
+
+static int deinit_log( void )
+{
+	CHECK_PTR_RET( log, FALSE );
+	stop_logging( log );
 }
 
 int main(int argc, char** argv)
 {
 	/* TODO: build a clean environment */
-
-	/* start syslog logging */
-	start_logging( "cblog" );
-
-	/* banner the syslog */
-	NOTICE( "%s\n", VERSION_STRING );
 
 	/* parse options and load config file */
 	CHECK_RET( parse_options( argc, argv ), EXIT_FAILURE );
@@ -229,7 +312,14 @@ int main(int argc, char** argv)
 
 	/* we should have a loaded config */
 	CHECK_RET( get_globals(), EXIT_FAILURE );
+	
+	/* start syslog logging */
+	init_log();
 
+	/* banner the syslog */
+	NOTICE( "%s\n", VERSION_STRING );
+
+	/* daemonized if we need to */
 	if ( do_daemon )
 	{
 		daemonize();
@@ -252,7 +342,7 @@ int main(int argc, char** argv)
 	delete_signals_and_event_loop( sigevt );
 
 	/* close the logging facility */
-	stop_logging();
+	deinit_log();
 
 	/* clean up the pid/start files */
 	NOTICE("unlinking: %s\n", pid_file );
