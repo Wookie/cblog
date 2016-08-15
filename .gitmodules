@@ -3,4 +3,4 @@
 	url = gh-wookie:Wookie/cllsd.git
 [submodule "cutil"]
 	path = cutil
-	url = gh-dhuseby:dhuseby/cutil.git
+	url = gh-wookie:Wookie/cutil.git
