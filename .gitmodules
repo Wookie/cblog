@@ -1,0 +1,6 @@
+[submodule "cllsd"]
+	path = cllsd
+	url = gh-wookie:Wookie/cllsd.git
+[submodule "cutil"]
+	path = cutil
+	url = gh-dhuseby:dhuseby/cutil.git
